@@ -10,5 +10,8 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<BookingModel, Long> {
     List<BookingModel> findByClientId(Long clientId);
-    List<BookingModel> findByClientIdAndScheduledDateBetween(Long clientId, LocalDateTime start, LocalDateTime end);
+    List<BookingModel> findByClientIdAndScheduledDateBetween(Long clientId, LocalDateTime startDate, LocalDateTime endDate);
+    List<BookingModel> findByScheduledDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<BookingModel> findByStatus(String status);
+    List<BookingModel> findByScheduledDateBetweenAndStatus(LocalDateTime startDate, LocalDateTime endDate, String status);
 }

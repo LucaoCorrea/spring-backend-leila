@@ -17,70 +17,76 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class BookingService {
-
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ServiceRepository serviceRepository;
 
     public BookingModel createBooking(BookingModel booking) {
-        if (booking.getClient() == null || booking.getClient().getId() == null) {
-            throw new RuntimeException("Client ID is required");
-        }
         UserModel client = userRepository.findById(booking.getClient().getId())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+
+        List<ServiceModel> services = serviceRepository.findAllById(
+                booking.getServices().stream().map(ServiceModel::getId).toList());
+
         booking.setClient(client);
-
-        if (booking.getServices() != null && !booking.getServices().isEmpty()) {
-            List<Long> serviceIds = booking.getServices().stream()
-                    .map(ServiceModel::getId)
-                    .toList();
-
-            List<ServiceModel> services = serviceRepository.findAllById(serviceIds);
-            booking.setServices(services);
-        } else {
-            booking.setServices(List.of());
-        }
-
+        booking.setServices(services);
         booking.setStatus(BookingStatus.REQUESTED);
+        booking.setTotalAmount(services.stream().mapToDouble(ServiceModel::getPrice).sum());
 
         return bookingRepository.save(booking);
     }
 
-    public List<BookingModel> getAllBookings() {
+    public List<BookingModel> getAllBookings(LocalDateTime startDate, LocalDateTime endDate, String status) {
+        if (startDate != null && endDate != null && status != null) {
+            return bookingRepository.findByScheduledDateBetweenAndStatus(startDate, endDate, status);
+        }
+        if (startDate != null && endDate != null) {
+            return bookingRepository.findByScheduledDateBetween(startDate, endDate);
+        }
+        if (status != null) {
+            return bookingRepository.findByStatus(status);
+        }
         return bookingRepository.findAll();
     }
 
-    public BookingModel updateBooking(Long id, BookingModel updatedBooking) {
-        BookingModel existing = bookingRepository.findById(id)
+    public BookingModel getBookingById(Long id) {
+        return bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
+    }
 
-        long daysUntil = ChronoUnit.DAYS.between(LocalDateTime.now(), existing.getScheduledDate());
-        if (daysUntil < 2) {
-            throw new IllegalArgumentException("Changes are only allowed at least 2 days in advance. Otherwise, contact by phone.");
+    public BookingModel updateBooking(Long id, BookingModel bookingDetails) {
+        BookingModel booking = getBookingById(id);
+
+        if (ChronoUnit.DAYS.between(LocalDateTime.now(), booking.getScheduledDate()) < 2) {
+            throw new IllegalArgumentException("Changes allowed only 2+ days in advance");
         }
 
-        existing.setScheduledDate(updatedBooking.getScheduledDate());
-        existing.setNotes(updatedBooking.getNotes());
+        booking.setScheduledDate(bookingDetails.getScheduledDate());
+        booking.setNotes(bookingDetails.getNotes());
 
-        if (updatedBooking.getServices() != null && !updatedBooking.getServices().isEmpty()) {
-            List<Long> serviceIds = updatedBooking.getServices().stream()
-                    .map(ServiceModel::getId)
-                    .toList();
+        List<ServiceModel> services = serviceRepository.findAllById(
+                bookingDetails.getServices().stream().map(ServiceModel::getId).toList());
 
-            List<ServiceModel> services = serviceRepository.findAllById(serviceIds);
-            existing.setServices(services);
-        } else {
-            existing.setServices(List.of());
-        }
+        booking.setServices(services);
+        booking.setTotalAmount(services.stream().mapToDouble(ServiceModel::getPrice).sum());
 
-        return bookingRepository.save(existing);
+        return bookingRepository.save(booking);
+    }
+
+    public BookingModel updateBookingStatus(Long id, BookingStatus status) {
+        BookingModel booking = getBookingById(id);
+        booking.setStatus(status);
+        return bookingRepository.save(booking);
     }
 
     public void deleteBooking(Long id) {
         bookingRepository.deleteById(id);
     }
 
-    public List<BookingModel> getClientBookings(Long clientId) {
+    public List<BookingModel> getClientBookings(Long clientId, LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate != null && endDate != null) {
+            return bookingRepository.findByClientIdAndScheduledDateBetween(clientId, startDate, endDate);
+        }
         return bookingRepository.findByClientId(clientId);
     }
 }
