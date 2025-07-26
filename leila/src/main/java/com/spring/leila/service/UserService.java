@@ -31,7 +31,7 @@ public class UserService {
         user.setName(name);
         user.setEmail(email);
         user.setPassword(encryptedPassword);
-        user.setRole(Role.USER);
+        user.setRole(role.USER);
 
         return userRepository.save(user);
     }

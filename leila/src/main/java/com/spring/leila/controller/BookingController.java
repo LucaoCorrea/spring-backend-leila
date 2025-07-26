@@ -17,6 +17,10 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<BookingModel> create(@RequestBody BookingModel booking) {
+        double totalAmount = booking.getServices().stream()
+            .mapToDouble(service -> service.getPrice())
+            .sum();
+        booking.setTotalAmount(totalAmount);
         return ResponseEntity.ok(bookingService.createBooking(booking));
     }
 
@@ -27,6 +31,10 @@ public class BookingController {
 
     @PutMapping("/{id}")
     public ResponseEntity<BookingModel> update(@PathVariable Long id, @RequestBody BookingModel booking) {
+        double totalAmount = booking.getServices().stream()
+            .mapToDouble(service -> service.getPrice())
+            .sum();
+        booking.setTotalAmount(totalAmount);
         return ResponseEntity.ok(bookingService.updateBooking(id, booking));
     }
 

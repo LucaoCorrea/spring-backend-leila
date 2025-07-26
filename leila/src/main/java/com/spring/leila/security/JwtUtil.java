@@ -5,6 +5,8 @@ import java.util.Date;
 
 import org.springframework.stereotype.Component;
 
+import com.spring.leila.model.UserModel;
+
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,9 +18,20 @@ public class JwtUtil {
     private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private static final long EXPIRATION_TIME = 86400000;
 
-    public static String generateToken(String email) {
+    public static String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role", role)
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public static String generateTokenLogin(String email, UserModel user, String role) {
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("id", user.getId())
+                .claim("role", role)
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -29,6 +42,11 @@ public class JwtUtil {
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
+    public static String extractRole(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build()
+                .parseClaimsJws(token).getBody().get("role", String.class);
+    }
+
     public static boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -37,6 +55,4 @@ public class JwtUtil {
             return false;
         }
     }
-
 }
-

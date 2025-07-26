@@ -32,6 +32,8 @@ public class BookingModel {
 
     private String notes;
 
+    private Double totalAmount;
+
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
 

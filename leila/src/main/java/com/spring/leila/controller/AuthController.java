@@ -28,17 +28,19 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
-        UserModel user = userService.registerUser(request.get("name"), request.get("email"), request.get("password"), Role.USER);
-        return ResponseEntity.ok(user);
+        UserModel user = userService.registerUser(request.get("name"), request.get("email"), request.get("password"),
+                Role.USER);
+        String token = JwtUtil.generateToken(user.getEmail(), Role.USER.name());
+        return ResponseEntity.ok(Map.of("user", user, "token", token));
     }
-    
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
-       Optional<UserModel> user = userService.findByEmail(request.get("email"));
-       if (user.isPresent() && user.get().getPassword().equals(request.get("password"))) {
-         String token = JwtUtil.generateToken(user.get().getEmail());
-         return ResponseEntity.ok(Map.of("token", token));
-       }
-       return ResponseEntity.status(401).body("Credenciais inválidas");
+        Optional<UserModel> user = userService.findByEmail(request.get("email"));
+        if (user.isPresent() && user.get().getPassword().equals(request.get("password"))) {
+            String token = JwtUtil.generateTokenLogin(user.get().getEmail(), user.get(), user.get().getRole().name());
+            return ResponseEntity.ok(Map.of("token", token, "role", user.get().getRole(), "id", user.get().getId()));
+        }
+        return ResponseEntity.status(401).body("Credenciais inválidas");
     }
 }
