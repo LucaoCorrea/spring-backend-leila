@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.spring.leila.enums.BookingStatus;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,13 +29,15 @@ public class BookingModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = false)
     private LocalDateTime scheduledDate;
-
+    @Column(nullable = false, unique = false)
     private String notes;
-
+    @Column(nullable = false, unique = false)
     private Double totalAmount;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = false)
     private BookingStatus status;
 
     @ManyToOne

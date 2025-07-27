@@ -31,12 +31,20 @@ public class UserService {
         user.setName(name);
         user.setEmail(email);
         user.setPassword(encryptedPassword);
-        user.setRole(role.USER);
+        user.setRole(role);
 
         return userRepository.save(user);
     }
 
     public Optional<UserModel> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public UserModel save(UserModel user) {
+        return userRepository.save(user);
+    }
+
+    public void delete(UserModel user) {
+        userRepository.delete(user);
     }
 }

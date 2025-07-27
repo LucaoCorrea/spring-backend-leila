@@ -10,6 +10,7 @@ import com.spring.leila.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -91,4 +92,14 @@ public class BookingService {
         }
         return bookingRepository.findByClientId(clientId);
     }
+
+    public BigDecimal getTotalRevenue(LocalDateTime startDate, LocalDateTime endDate) {
+        return bookingRepository.findAll().stream()
+                .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
+                .filter(b -> (startDate == null || !b.getScheduledDate().isBefore(startDate)))
+                .filter(b -> (endDate == null || !b.getScheduledDate().isAfter(endDate)))
+                .map(b -> BigDecimal.valueOf(b.getTotalAmount()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
 }
