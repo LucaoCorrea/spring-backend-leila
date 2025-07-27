@@ -37,9 +37,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
         Optional<UserModel> user = userService.findByEmail(request.get("email"));
-        if (user.isPresent() && user.get().getPassword().equals(request.get("password"))) {
+
+        if (user.isPresent() && passwordEncoder.matches(request.get("password"), user.get().getPassword())) {
             String token = JwtUtil.generateTokenLogin(user.get().getEmail(), user.get(), user.get().getRole().name());
-            return ResponseEntity.ok(Map.of("token", token, "role", user.get().getRole(), "id", user.get().getId()));
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "role", user.get().getRole(),
+                    "id", user.get().getId()));
         }
         return ResponseEntity.status(401).body("Credenciais inválidas");
     }

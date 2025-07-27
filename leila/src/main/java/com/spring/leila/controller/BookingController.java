@@ -35,6 +35,7 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getBookingById(id));
     }
 
+    @CrossOrigin(origins = "*")
     @PutMapping("/{id}")
     public ResponseEntity<BookingModel> update(@PathVariable Long id, @RequestBody BookingModel booking) {
         return ResponseEntity.ok(bookingService.updateBooking(id, booking));

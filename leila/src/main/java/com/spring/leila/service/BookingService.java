@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -57,18 +56,21 @@ public class BookingService {
     public BookingModel updateBooking(Long id, BookingModel bookingDetails) {
         BookingModel booking = getBookingById(id);
 
-        if (ChronoUnit.DAYS.between(LocalDateTime.now(), booking.getScheduledDate()) < 2) {
-            throw new IllegalArgumentException("Changes allowed only 2+ days in advance");
+        if (bookingDetails.getScheduledDate() != null) {
+            booking.setScheduledDate(bookingDetails.getScheduledDate());
         }
-
-        booking.setScheduledDate(bookingDetails.getScheduledDate());
-        booking.setNotes(bookingDetails.getNotes());
-
-        List<ServiceModel> services = serviceRepository.findAllById(
-                bookingDetails.getServices().stream().map(ServiceModel::getId).toList());
-
-        booking.setServices(services);
-        booking.setTotalAmount(services.stream().mapToDouble(ServiceModel::getPrice).sum());
+        if (bookingDetails.getNotes() != null) {
+            booking.setNotes(bookingDetails.getNotes());
+        }
+        if (bookingDetails.getStatus() != null) {
+            booking.setStatus(bookingDetails.getStatus());
+        }
+        if (bookingDetails.getServices() != null && !bookingDetails.getServices().isEmpty()) {
+            List<ServiceModel> services = serviceRepository.findAllById(
+                    bookingDetails.getServices().stream().map(ServiceModel::getId).toList());
+            booking.setServices(services);
+            booking.setTotalAmount(services.stream().mapToDouble(ServiceModel::getPrice).sum());
+        }
 
         return bookingRepository.save(booking);
     }
