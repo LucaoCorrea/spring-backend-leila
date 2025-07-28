@@ -1,10 +1,10 @@
 package com.spring.leila.model;
 
-import org.antlr.v4.runtime.misc.NotNull;
+
 
 import com.spring.leila.enums.Role;
 
-import io.micrometer.common.lang.Nullable;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
